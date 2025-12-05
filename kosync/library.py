@@ -48,31 +48,55 @@ class Book:
         # Construct the download URL
         download_url = f"{host_url}/download/{self.filename}"
         
+        # Split author name for proper formatting
+        author_parts = self.author.split(',', 1)
+        if len(author_parts) == 2:
+            last_name = author_parts[0].strip()
+            first_name = author_parts[1].strip()
+        else:
+            first_name = self.author
+            last_name = ""
+        
         return {
-            "ChangeType": "Added",
-            "DateCreated": datetime.datetime.utcnow().isoformat(),
+            "ChangedMetadata": {
+                "Authors": [{"Name": self.author}],
+                "Title": self.title
+            },
+            "ChangeType": "NewEntitlement",
+            "DateCreated": datetime.datetime.utcnow().isoformat() + "Z",
             "EntitlementId": self.id,
             "IsDeleted": False,
             "Item": {
+                "ContributorRoles": [
+                    {
+                        "Name": self.author,
+                        "Role": "Author"
+                    }
+                ],
+                "Contributors": [first_name + " " + last_name],
+                "CoverImageId": self.id,
+                "Description": self.description,
                 "DownloadUrls": [
                     {
+                        "DRMType": "NONE",
                         "Format": "EPUB",
                         "Platform": "Generic",
                         "Size": self.size,
                         "Url": download_url
                     }
                 ],
+                "EntitlementId": self.id,
+                "ExternalIds": [],
+                "Genre": "00000000-0000-0000-0000-000000000000",
                 "Id": self.id,
-                "Title": self.title,
-                "Authors": [{"FirstName": self.author, "LastName": ""}], # Simplified author
-                "Description": self.description,
-                "Format": "EPUB",
-                "IsObsolete": False,
-                "IsOwned": True,
-                "IsPreOrder": False,
-                "ItemType": "EBook",
+                "IsSocialEnabled": False,
                 "Language": "en",
+                "PhoneticPronunciations": {},
+                "PublicationDate": datetime.datetime.utcnow().isoformat() + "Z",
+                "Publisher": {"Imprint": "", "Name": "Unknown"},
                 "RevisionId": self.id,
+                "Title": self.title,
+                "WorkId": self.id
             }
         }
 
