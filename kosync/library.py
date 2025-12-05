@@ -57,25 +57,34 @@ class Book:
             first_name = self.author
             last_name = ""
         
+        full_name = f"{first_name} {last_name}".strip()
+        
         return {
-            "ChangedMetadata": {
-                "Authors": [{"Name": self.author}],
-                "Title": self.title
+            "ChangedMetadata": {},
+            "ChangeType": "Entitlement",
+            "NewEntitlement": {
+                "Accessibility": "Full",
+                "ActivePeriod": {
+                    "From": datetime.datetime.utcnow().isoformat() + "Z"
+                },
+                "Created": datetime.datetime.utcnow().isoformat() + "Z",
+                "Id": self.id,
+                "IsHiddenFromArchive": False,
+                "IsLocked": False,
+                "LastModified": datetime.datetime.utcnow().isoformat() + "Z",
+                "OriginalAcquisitionDate": datetime.datetime.utcnow().isoformat() + "Z",
+                "RevisionId": self.id
             },
-            "ChangeType": "NewEntitlement",
-            "DateCreated": datetime.datetime.utcnow().isoformat() + "Z",
-            "EntitlementId": self.id,
-            "IsDeleted": False,
-            "Item": {
+            "NewItem": {
                 "ContributorRoles": [
                     {
-                        "Name": self.author,
+                        "Name": full_name,
                         "Role": "Author"
                     }
                 ],
-                "Contributors": [first_name + " " + last_name],
+                "Contributors": [full_name],
                 "CoverImageId": self.id,
-                "Description": self.description,
+                "Description": self.description if self.description else "",
                 "DownloadUrls": [
                     {
                         "DRMType": "NONE",

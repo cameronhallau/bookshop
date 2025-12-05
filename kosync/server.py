@@ -68,12 +68,15 @@ def library_sync(key):
     
     events = library.get_sync_events(HOST_URL)
     
+    print(f"Sending {len(events)} books to Kobo")
+    
     # The Kobo expects a list of sync events
     # We also need to handle pagination if we have many books, but for barebones we'll send all
     
-    # Add a sync token header
+    # Add required sync headers
     resp = jsonify(events)
-    resp.headers['x-kobo-synctoken'] = 'new_token'
+    resp.headers['x-kobo-sync'] = 'continue'
+    resp.headers['x-kobo-synctoken'] = 'sync-token-' + str(len(events))
     return resp
 
 @app.route('/download/<path:filename>', methods=['GET'])
