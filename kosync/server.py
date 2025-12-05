@@ -43,10 +43,12 @@ except FileNotFoundError:
 
 
 @app.route('/kobo/<key>/v1/initialization', methods=['GET'])
+@app.route('/kobo/<key>/v1/v1/initialization', methods=['GET'])
 def initialization(key):
     return jsonify(FULL_INIT_DATA)
 
 @app.route('/kobo/<key>/v1/auth/device', methods=['POST'])
+@app.route('/kobo/<key>/v1/v1/auth/device', methods=['POST'])
 def auth_device(key):
     # Stub authentication
     response = {
@@ -59,6 +61,7 @@ def auth_device(key):
     return jsonify(response)
 
 @app.route('/kobo/<key>/v1/library/sync', methods=['GET'])
+@app.route('/kobo/<key>/v1/v1/library/sync', methods=['GET'])
 def library_sync(key):
     # Rescan library on sync request (optional, but good for "dynamic" updates)
     # library.scan() 
