@@ -118,5 +118,16 @@ def catch_all(path):
     return jsonify({})
 
 if __name__ == '__main__':
+    # SSL Configuration
+    cert_path = os.environ.get("SSL_CERT", "cert.pem")
+    key_path = os.environ.get("SSL_KEY", "key.pem")
+    
+    ssl_context = None
+    if os.path.exists(cert_path) and os.path.exists(key_path):
+        print(f"Starting in HTTPS mode using {cert_path} and {key_path}")
+        ssl_context = (cert_path, key_path)
+    else:
+        print("Starting in HTTP mode (No 'cert.pem' and 'key.pem' found)")
+
     # Run on 0.0.0.0 to be accessible from the network
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, ssl_context=ssl_context)
