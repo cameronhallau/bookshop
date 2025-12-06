@@ -88,7 +88,7 @@ def library_sync(key):
     
     # Add required sync headers
     resp = jsonify(events)
-    resp.headers['x-kobo-sync'] = 'continue'
+    # resp.headers['x-kobo-sync'] = 'continue' # Removed to stop endless loop
     resp.headers['x-kobo-synctoken'] = 'sync-token-' + str(len(events))
     return resp
 
