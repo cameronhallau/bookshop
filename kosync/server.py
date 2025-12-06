@@ -6,7 +6,7 @@ from library import Library
 app = Flask(__name__)
 
 # Configuration
-LIBRARY_PATH = os.environ.get("LIBRARY_PATH", "/media/kobink_test")
+LIBRARY_PATH = os.environ.get("LIBRARY_PATH", "/home/bookuser/library")
 HOST_URL = os.environ.get("HOST_URL", "http://192.168.1.100:8000") # Change this to your Pi's IP
 
 # Initialize Library
