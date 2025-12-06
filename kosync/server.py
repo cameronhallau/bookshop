@@ -43,12 +43,21 @@ except FileNotFoundError:
 
 
 @app.route('/kobo/<key>/v1/initialization', methods=['GET'])
-@app.route('/kobo/<key>/v1/v1/initialization', methods=['GET'])
 def initialization(key):
-    return jsonify(FULL_INIT_DATA)
+    # Ensure initialization.json is loaded
+    try:
+        with open("initialization.json", "r") as f:
+            full_init_data = json.load(f)
+            # Override critical endpoints with current host
+            # Using simple string replacement or direct assignment
+            full_init_data["Resources"]["device_auth"] = f"{HOST_URL}/kobo/{key}/v1/auth/device"
+            full_init_data["Resources"]["library_sync"] = f"{HOST_URL}/kobo/{key}/v1/library/sync"
+            return jsonify(full_init_data)
+    except Exception as e:
+        print(f"Error loading initialization.json: {e}")
+        return jsonify({"Error": "Failed to load initialization data"}), 500
 
 @app.route('/kobo/<key>/v1/auth/device', methods=['POST'])
-@app.route('/kobo/<key>/v1/v1/auth/device', methods=['POST'])
 def auth_device(key):
     # Stub authentication
     response = {
@@ -58,10 +67,11 @@ def auth_device(key):
         "TrackingId": "SAMPLE_TRACKING_ID",
         "UserKey": "SAMPLE_USER_KEY"
     }
-    return jsonify(response)
+    resp = jsonify(response)
+    resp.headers['x-kobo-synctoken'] = 'SAMPLE_SYNCTOKEN'
+    return resp
 
 @app.route('/kobo/<key>/v1/library/sync', methods=['GET'])
-@app.route('/kobo/<key>/v1/v1/library/sync', methods=['GET'])
 def library_sync(key):
     # Rescan library on sync request (optional, but good for "dynamic" updates)
     # library.scan() 
@@ -79,8 +89,13 @@ def library_sync(key):
     resp.headers['x-kobo-synctoken'] = 'sync-token-' + str(len(events))
     return resp
 
-@app.route('/download/<path:filename>', methods=['GET'])
-def download_book(filename):
+@app.route('/download/<book_id>/<book_format>/<filename>', methods=['GET'])
+def download_book(book_id, book_format, filename):
+    # We can validate book_id or format if we want, but for now rely on filename
+    if book_format != "EPUB":
+        # Rust reference only handles EPUB explicit check (implied by file extension mostly)
+        pass 
+
     book_path = library.get_book_path(filename)
     if book_path and os.path.exists(book_path):
         return send_file(book_path, as_attachment=True)

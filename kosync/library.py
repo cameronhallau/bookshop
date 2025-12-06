@@ -46,7 +46,9 @@ class Book:
 
     def to_sync_event(self, host_url):
         # Construct the download URL
-        download_url = f"{host_url}/download/{self.filename}"
+        # Matches Rust pattern: /:book_id/:book_format/:filename
+        # but using IDs from this object.
+        download_url = f"{host_url}/download/{self.id}/EPUB/{self.filename}"
         
         # Split author name for proper formatting
         author_parts = self.author.split(',', 1)
@@ -58,54 +60,71 @@ class Book:
             last_name = ""
         
         full_name = f"{first_name} {last_name}".strip()
-        
+        timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+
+        # Construct the nested structure matching Rust's Entitlement (BookEntitlement + BookMetadata)
         return {
-            "ChangedMetadata": {},
-            "ChangeType": "Entitlement",
             "NewEntitlement": {
-                "Accessibility": "Full",
-                "ActivePeriod": {
-                    "From": datetime.datetime.utcnow().isoformat() + "Z"
+                "BookEntitlement": {
+                    "Accessibility": "Full",
+                    "ActivePeriod": {
+                        "From": timestamp
+                    },
+                    "Created": timestamp,
+                    "CrossRevisionId": self.id,
+                    "Id": self.id,
+                    "IsRemoved": False,
+                    "IsHiddenFromArchive": False,
+                    "IsLocked": False,
+                    "LastModified": timestamp,
+                    "OriginCategory": "Imported",
+                    "RevisionId": self.id,
+                    "Status": "Active"
                 },
-                "Created": datetime.datetime.utcnow().isoformat() + "Z",
-                "Id": self.id,
-                "IsHiddenFromArchive": False,
-                "IsLocked": False,
-                "LastModified": datetime.datetime.utcnow().isoformat() + "Z",
-                "OriginalAcquisitionDate": datetime.datetime.utcnow().isoformat() + "Z",
-                "RevisionId": self.id
-            },
-            "NewItem": {
-                "ContributorRoles": [
-                    {
-                        "Name": full_name,
-                        "Role": "Author"
-                    }
-                ],
-                "Contributors": [full_name],
-                "CoverImageId": self.id,
-                "Description": self.description if self.description else "",
-                "DownloadUrls": [
-                    {
-                        "DRMType": "NONE",
-                        "Format": "EPUB",
-                        "Platform": "Generic",
-                        "Size": self.size,
-                        "Url": download_url
-                    }
-                ],
-                "EntitlementId": self.id,
-                "ExternalIds": [],
-                "Genre": "00000000-0000-0000-0000-000000000000",
-                "Id": self.id,
-                "IsSocialEnabled": False,
-                "Language": "en",
-                "PhoneticPronunciations": {},
-                "PublicationDate": datetime.datetime.utcnow().isoformat() + "Z",
-                "Publisher": {"Imprint": "", "Name": "Unknown"},
-                "RevisionId": self.id,
-                "Title": self.title,
-                "WorkId": self.id
+                "BookMetadata": {
+                    "Categories": [],
+                    "Contributors": [full_name],
+                    "ContributorRoles": [
+                        {
+                            "Name": full_name,
+                            "Role": "Author"
+                        }
+                    ],
+                    "CoverImageId": self.id,
+                    "CrossRevisionId": self.id,
+                    "CurrentDisplayPrice": {
+                        "CurrencyCode": "USD", 
+                        "TotalAmount": 0
+                    },
+                    "CurrentLoveDisplayPrice": {
+                        "TotalAmount": 0
+                    },
+                    "Description": self.description if self.description else "",
+                    "DownloadUrls": [
+                        {
+                            "DRMType": "NONE", # Extra field kept just in case, Rust doesn't have it in struct but maybe flexible
+                            "Format": "EPUB",
+                            "Platform": "Generic",
+                            "Size": self.size,
+                            "Url": download_url
+                        }
+                    ],
+                    "EntitlementId": self.id,
+                    "ExternalIds": [],
+                    "Genre": "00000000-0000-0000-0000-000000000000",
+                    "IsEligibleForKoboLove": False,
+                    "IsInternetArchive": False,
+                    "IsPreOrder": False,
+                    "IsSocialEnabled": False,
+                    "Language": "en",
+                    "PhoneticPronunciations": {},
+                    "PublicationDate": timestamp,
+                    "Publisher": {"Imprint": "", "Name": "Unknown"},
+                    "RevisionId": self.id,
+                    "Title": self.title,
+                    "WorkId": self.id
+                    # Series is optional
+                }
             }
         }
 
