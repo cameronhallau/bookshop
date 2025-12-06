@@ -60,10 +60,13 @@ class Book:
             last_name = ""
         
         full_name = f"{first_name} {last_name}".strip()
-        timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+        # Kobo prefers timestamps without microseconds, e.g. "2023-01-01T12:00:00Z"
+        timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
         # Construct the nested structure matching Rust's Entitlement (BookEntitlement + BookMetadata)
+        # Adding ChangeType explicitly as it helps some Kobo versions identify the event type.
         return {
+            "ChangeType": "Entitlement", 
             "NewEntitlement": {
                 "BookEntitlement": {
                     "Accessibility": "Full",
@@ -102,7 +105,7 @@ class Book:
                     "Description": self.description if self.description else "",
                     "DownloadUrls": [
                         {
-                            "DRMType": "NONE", # Extra field kept just in case, Rust doesn't have it in struct but maybe flexible
+                            "DRMType": "NONE", 
                             "Format": "EPUB",
                             "Platform": "Generic",
                             "Size": self.size,
