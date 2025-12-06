@@ -45,14 +45,17 @@ except FileNotFoundError:
 @app.route('/kobo/<key>/v1/initialization', methods=['GET'])
 @app.route('/kobo/<key>/v1/v1/initialization', methods=['GET'])
 def initialization(key):
+    # Dynamically grab the host from the request
+    # request.host_url usually returns "http://1.2.3.4:8000/" (with trailing slash)
+    host = request.host_url.rstrip('/')
+    
     # Ensure initialization.json is loaded
     try:
         with open("initialization.json", "r") as f:
             full_init_data = json.load(f)
-            # Override critical endpoints with current host
-            # Using simple string replacement or direct assignment
-            full_init_data["Resources"]["device_auth"] = f"{HOST_URL}/kobo/{key}/v1/auth/device"
-            full_init_data["Resources"]["library_sync"] = f"{HOST_URL}/kobo/{key}/v1/library/sync"
+            # Override critical endpoints with dynamic host
+            full_init_data["Resources"]["device_auth"] = f"{host}/kobo/{key}/v1/auth/device"
+            full_init_data["Resources"]["library_sync"] = f"{host}/kobo/{key}/v1/library/sync"
             return jsonify(full_init_data)
     except Exception as e:
         print(f"Error loading initialization.json: {e}")
@@ -79,7 +82,10 @@ def library_sync(key):
     # Rescan library on sync request (optional, but good for "dynamic" updates)
     # library.scan() 
     
-    events = library.get_sync_events(HOST_URL)
+    # Dynamically grab the host from the request
+    host = request.host_url.rstrip('/')
+    
+    events = library.get_sync_events(host)
     
     print(f"Sending {len(events)} books to Kobo")
     
